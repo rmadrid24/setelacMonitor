@@ -35,7 +35,6 @@ import {
   Toast
 } from 'native-base';
 import DateTimePicker from 'react-native-modal-datetime-picker';
-import { Auth } from 'aws-amplify';
 import { Formik, Field, ErrorMessage } from 'formik';
 import moment from 'moment';
 import * as Yup from 'yup';
@@ -209,11 +208,6 @@ export default class Main extends Component {
     };
   }
 
-  handleLogOut = async () => {
-    await Auth.signOut();
-    this.props.navigation.navigate('Auth');
-  }
-
   _showDateTimePicker = () => {
     this.setState({ isDateTimePickerVisible: true })
   };
@@ -298,23 +292,7 @@ export default class Main extends Component {
                 <ErrorMessage name="osId" component={errorComponent} />
                 <Field name="action" component={pickerComponent} label="Tipo de OS" placeholder="Seleccione tipo de OS" items={this.state.activityOptions} />
                 <ErrorMessage name="action" component={errorComponent} />
-                {/* <Item
-                    picker
-                    error={props.errors && props.errors.actionDescription ? true : false}
-                  >
-                    <Picker
-                      mode="dropdown"
-                      style={{ width: '50%' }}
-                      placeholder="Tipo de Actividad"
-                      placeholderStyle={{ color: "#bfc6ea" }}
-                      placeholderIconColor="#007aff"
-                      selectedValue={props.values.actionDescription}
-                      onValueChange={props.handleChange("actionDescription")}
-                    >
-                      {renderActivityOptions(props.values.action)}
-                    </Picker>
-                  </Item> */}
-                <Field name="actionDescription" component={pickerComponent} label="Accion Realizada" placeholder="Seleccione accion realizada" items={this.getActivityDetailOptions()} />
+                <Field name="actionDescription" component={pickerComponent} label="Accion Realizada" placeholder="Seleccione accion realizada" items={this.getActivityDetailOptions(props.values.action)} />
                 <ErrorMessage name="actionDescription" component={errorComponent} />
                 <View>
                   <DateTimePicker

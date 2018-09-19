@@ -64,7 +64,7 @@ export default class Login extends Component {
         text: "Credenciales Inválidas!",
         duration: 2000,
         position: "top",
-        type: "error",
+        type: "danger",
         textStyle: { textAlign: "center" }
       });
     }

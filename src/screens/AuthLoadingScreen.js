@@ -23,6 +23,7 @@ export default class AuthLoadingScreen extends React.Component {
   _bootstrapAsync = async () => {
     try {
       let session = await Auth.currentSession();
+      console.log('sssion', session);
       if (session) {
         this.props.navigation.navigate('App');
       } else {

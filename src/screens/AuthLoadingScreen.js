@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { Component } from 'react';
 import {
   ActivityIndicator,
   AsyncStorage,
   StatusBar,
   StyleSheet,
   View,
+  Text,
 } from 'react-native';
+import { Auth } from 'aws-amplify';
 
 export default class AuthLoadingScreen extends React.Component {
+  static navigationOptions = {
+    headerMode: 'none'
+  }
+
   constructor(props) {
     super(props);
     this._bootstrapAsync();
@@ -15,11 +21,17 @@ export default class AuthLoadingScreen extends React.Component {
 
   // Fetch the token from storage then navigate to our appropriate place
   _bootstrapAsync = async () => {
-    const userToken = await AsyncStorage.getItem('userToken');
-
-    // This will switch to the App screen or Auth screen and this loading
-    // screen will be unmounted and thrown away.
-    this.props.navigation.navigate(userToken ? 'App' : 'Auth');
+    try {
+      let session = await Auth.currentSession();
+      if (session) {
+        this.props.navigation.navigate('App');
+      } else {
+        this.props.navigation.navigate('Auth');
+      }
+    } catch (err) {
+      console.log('error: ', err)
+      this.props.navigation.navigate('Auth');
+    }
   };
 
   // Render any loading content that you like here

@@ -304,7 +304,7 @@ export default class Main extends Component {
                       </Item>
                     </Col>
                     <Button style={{ alignSelf: 'flex-end' }} transparent onPress={this._showDateTimePicker}>
-                      <Icon name='time' />
+                      <Icon style={{ fontSize: 30  }} name='time' />
                     </Button>
                   </Grid>
                 </View>

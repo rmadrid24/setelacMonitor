@@ -74,7 +74,7 @@ export default class Login extends Component {
       <Container>
         <Header style={{ height: 200 }}>
           <Body style={{ alignItems: "center" }}>
-            <Icon name="flash" style={{ fontSize: 104 }} />
+            <Icon name="flash" style={{ fontSize: 104, color: "#FFFFFF" }} />
             <Title>Servicio de Actas</Title>
             <View padder>
               <Text style={{ color: Platform.OS === "ios" ? "#000" : "#FFF" }}>

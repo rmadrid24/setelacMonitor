@@ -39,19 +39,6 @@ import { Formik, Field, ErrorMessage } from 'formik';
 import moment from 'moment';
 import * as Yup from 'yup';
 
-function renderActivityOptions(type) {
-  const options = [];
-  if (type) {
-    for (let i = 0; i < activityOptions[type].length; i++) {
-      // Try avoiding the use of index as a key, it has to be unique!
-      options.push(
-        <Picker.Item label={activityOptions[type][i]} value={activityOptions[type][i]} />
-      );
-    }
-  }
-  return options;
-}
-
 const inputComponent = ({
   field, // { name, value, onChange, onBlur }
   form: { touched, errors }, // also values, setXXXX, handleXXXX, dirty, isValid, status, etc.
@@ -68,7 +55,7 @@ const inputComponent = ({
 
 const pickerComponent = ({
   field, // { name, value, onChange, onBlur }
-  form: { touched, errors, handleChange }, // also values, setXXXX, handleXXXX, dirty, isValid, status, etc.
+  form: { touched, errors, handleChang, setFieldTouched, setFieldValue }, // also values, setXXXX, handleXXXX, dirty, isValid, status, etc.
   ...props
 }) => (
     <Item
@@ -81,7 +68,12 @@ const pickerComponent = ({
         mode="dropdown"
         style={{ width: '100%' }}
         selectedValue={field.value}
-        onValueChange={field.onChange(field.name)}
+        onValueChange={(val) => {
+          setFieldValue(field.name, val);
+          if (!touched[field.name]) {
+            setFieldTouched(field.name);
+          }
+        }}
       >
         <Picker.Item label={props.placeholder} value="" />
         {
@@ -110,6 +102,8 @@ export default class Main extends Component {
       osId: Yup.string()
         .required('Valor no puede ser vacio'),
       action: Yup.string()
+        .required('Valor no puede ser vacio'),
+      actionDescription: Yup.string()
         .required('Valor no puede ser vacio'),
     });
 
@@ -221,7 +215,6 @@ export default class Main extends Component {
       Toast.show({
         text: "Actividad enviada correctamente!",
         duration: 3000,
-
         type: 'success'
       });
       setSubmitting(false);

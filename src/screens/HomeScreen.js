@@ -38,6 +38,7 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 import { Formik, Field, ErrorMessage } from 'formik';
 import moment from 'moment';
 import * as Yup from 'yup';
+import SplashScreen from 'react-native-splash-screen'
 
 const inputComponent = ({
   field, // { name, value, onChange, onBlur }
@@ -200,6 +201,12 @@ export default class Main extends Component {
         }
       ]
     };
+  }
+
+  componentDidMount() {
+    // do stuff while splash screen is shown
+      // After having done stuff (such as async tasks) hide the splash screen
+      SplashScreen.hide();
   }
 
   _showDateTimePicker = () => {

@@ -19,7 +19,7 @@ import { Auth } from 'aws-amplify';
 import { Formik, Field, ErrorMessage } from 'formik';
 import moment from 'moment';
 import * as Yup from 'yup';
-
+import SplashScreen from 'react-native-splash-screen'
 
 const inputComponent = ({
   field, // { name, value, onChange, onBlur }
@@ -48,6 +48,12 @@ export default class Login extends Component {
       password: Yup.string()
         .required('Valor no puede ser vacio')
     });
+  }
+
+  componentDidMount() {
+    // do stuff while splash screen is shown
+      // After having done stuff (such as async tasks) hide the splash screen
+      SplashScreen.hide();
   }
 
   handleSubmit = async (values, { setSubmitting }) => {

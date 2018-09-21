@@ -39,6 +39,8 @@ import { Formik, Field, ErrorMessage } from 'formik';
 import moment from 'moment';
 import * as Yup from 'yup';
 import SplashScreen from 'react-native-splash-screen'
+import { Mutation, graphql } from "react-apollo";
+import ADD_ORDER from '../services/mutations/add-order';
 
 const inputComponent = ({
   field, // { name, value, onChange, onBlur }
@@ -90,7 +92,7 @@ const errorComponent = ({ children }) => (
   <Text style={styles.errorMessage}>{children}</Text>
 );
 
-export default class Main extends Component {
+class Main extends Component {
   static navigationOptions = {
     header: null
   };
@@ -334,6 +336,14 @@ export default class Main extends Component {
     );
   }
 }
+
+const withAddOrderMutation = graphql(ADD_ORDER, {
+  props: ({ mutate }) => ({
+    addOrder: order => mutate({ variables: { order } }),
+  }),
+});
+
+export default withAddOrderMutation(Main);
 
 const styles = StyleSheet.create({
   submitButton: {

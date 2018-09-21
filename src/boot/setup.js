@@ -28,9 +28,13 @@ export default class Setup extends React.Component {
 
   render() {
     return (
-      <Root>
-        <App />
-      </Root>
+      <ApolloProvider client={client}>
+        <Rehydrated>
+          <Root>
+            <App />
+          </Root>
+        </Rehydrated>
+      </ApolloProvider>
     );
   }
 }

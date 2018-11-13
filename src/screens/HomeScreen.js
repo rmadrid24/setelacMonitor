@@ -40,7 +40,12 @@ import moment from 'moment';
 import * as Yup from 'yup';
 import SplashScreen from 'react-native-splash-screen'
 import { Mutation, graphql } from "react-apollo";
+import { Auth } from 'aws-amplify';
 import ADD_ORDER from '../services/mutations/add-order';
+import GET_ORDER_TYPES from '../services/queries/get-order-types';
+import GET_ORDER_TYPE_ACTIONS from '../services/queries/get-order-type-actions';
+import OrderTypeSelect from '../components/order-type-select';
+import OrderActionsSelect from '../components/order-actions-select';
 
 const inputComponent = ({
   field, // { name, value, onChange, onBlur }
@@ -102,7 +107,7 @@ class Main extends Component {
     this.activitySchema = Yup.object().shape({
       orderId: Yup.string()
         .required('Valor no puede ser vacio'),
-      osId: Yup.string()
+      serviceOrderId: Yup.string()
         .required('Valor no puede ser vacio'),
       action: Yup.string()
         .required('Valor no puede ser vacio'),
@@ -114,101 +119,29 @@ class Main extends Component {
       datePickerMode: 'time',
       chosenDate: new Date(),
       isDateTimePickerVisible: false,
-      activityOptions: [
-        {
-          key: "quit",
-          label: "Corte",
-          items: [
-            {
-              key: "spb",
-              label: "suspension de base"
-            },
-            {
-              key: "spm",
-              label: "suspension en la mufa"
-            },
-            {
-              key: "spp",
-              label: "suspension en el poste"
-            },
-            {
-              key: "spt",
-              label: "suspension en tendido"
-            },
-            {
-              key: "spa",
-              label: "suspension con retiro de acometida"
-            }
-          ],
-        },
-        {
-          key: "reconnection",
-          label: "Reconexion",
-          items: [
-            {
-              key: "rb",
-              label: "reconexion de base"
-            },
-            {
-              key: "rm",
-              label: "reconexion en la mufa"
-            },
-            {
-              key: "rp",
-              label: "reconexion en el poste"
-            },
-            {
-              key: "rt",
-              label: "reconexion en tendido"
-            },
-            {
-              key: "ra",
-              label: "reconexion con retiro de acometida"
-            }
-          ],
-        },
-        {
-          key: "failed",
-          label: "Fallida",
-          items: [
-            {
-              key: "pd",
-              label: "predio o casa demolida"
-            },
-            {
-              key: "rec",
-              label: "en reclamo"
-            },
-            {
-              key: "si",
-              label: "servicio inexistente"
-            },
-            {
-              key: "amn",
-              label: "abonado aplico a la amnistia"
-            },
-            {
-              key: "cancel",
-              label: "cliente ha cancelado"
-            },
-            {
-              key: "susp",
-              label: "serivicio suspendido"
-            },
-            {
-              key: "zpel",
-              label: "zona peligrosa"
-            }
-          ],
-        }
-      ]
+      currentUser: ""
     };
+    this.setUser();
   }
 
   componentDidMount() {
     // do stuff while splash screen is shown
-      // After having done stuff (such as async tasks) hide the splash screen
-      SplashScreen.hide();
+    // After having done stuff (such as async tasks) hide the splash screen
+    SplashScreen.hide();
+
+  }
+
+  setUser = async () => {
+    try {
+      let session = (await Auth.currentSession()).getAccessToken();
+      if (session) {
+        this.setState({
+          currentUser: session.payload.username
+        });
+      }
+    } catch (err) {
+      console.log('error: ', err)
+    }
   }
 
   _showDateTimePicker = () => {
@@ -217,17 +150,38 @@ class Main extends Component {
 
   _hideDateTimePicker = () => this.setState({ isDateTimePickerVisible: false });
 
-  handleSubmit = (values, { setSubmitting }) => {
+  handleSubmit = (values, { setSubmitting, resetForm }) => {
     // console.log('values', values);
-    setTimeout(() => {
-      console.log('values', values);
-      Toast.show({
-        text: "Actividad enviada correctamente!",
-        duration: 3000,
-        type: 'success'
-      });
-      setSubmitting(false);
-    }, 5000);
+    console.log('values', values);
+    if (this.props.addOrder) {
+      const { timeCompletedObject, timeCompleted, ...rest } = values;
+      const order = {
+          timeCompleted: "2018-11-10T14:48:00",
+          userId: this.state.currentUser,
+          ...rest
+      }
+      console.log('oorder', order)
+      this.props.addOrder(order)
+        .then((data) => {
+          console.log('data', data);
+          Toast.show({
+            text: "Acta registrada correctamente!",
+            duration: 3000,
+            type: 'success'
+          });
+          setSubmitting(false);
+          resetForm();
+        })
+        .catch((err) => {
+          Toast.show({
+            text: "Error al enviar acta!",
+            duration: 3000,
+            type: 'danger'
+          });
+          console.log('error', err);
+          setSubmitting(false);
+        });
+    }
   }
 
   timeInputConfirm = (date, formProps) => {
@@ -235,19 +189,6 @@ class Main extends Component {
     formProps.setFieldValue('timeCompletedObject', selectedDate);
     formProps.setFieldValue('timeCompleted', selectedDate.format("HH:mm"));
     this._hideDateTimePicker();
-  }
-
-  getActivityDetailOptions = (type) => {
-    const { activityOptions } = this.state;
-    var items = [];
-    for (var i = 0; i < activityOptions.length; i++) {
-      if (activityOptions[i].key === type) {
-        activityOptions[i].items.map((item) => {
-          items.push(item);
-        });
-      }
-    }
-    return items;
   }
 
   hideKeyboard = () => {
@@ -259,7 +200,7 @@ class Main extends Component {
       <Formik
         initialValues={{
           orderId: '',
-          osId: '',
+          serviceOrderId: '',
           action: '',
           actionDescription: '',
           timeCompleted: moment().format("HH:mm"),
@@ -290,11 +231,11 @@ class Main extends Component {
               <Form>
                 <Field name="orderId" component={inputComponent} label="Numero de Acta" placeholder="Ingrese numero de acta" />
                 <ErrorMessage name="orderId" component={errorComponent} />
-                <Field name="osId" component={inputComponent} label="Numero de OS" placeholder="Ingrese numero de OS" />
-                <ErrorMessage name="osId" component={errorComponent} />
-                <Field name="action" component={pickerComponent} label="Tipo de OS" placeholder="Seleccione tipo de OS" items={this.state.activityOptions} />
+                <Field name="serviceOrderId" component={inputComponent} label="Numero de OS" placeholder="Ingrese numero de OS" />
+                <ErrorMessage name="serviceOrderId" component={errorComponent} />
+                <Field name="action" component={OrderTypeSelect} label="Tipo de OS" placeholder="Seleccione tipo de OS" />
                 <ErrorMessage name="action" component={errorComponent} />
-                <Field name="actionDescription" component={pickerComponent} label="Accion Realizada" placeholder="Seleccione accion realizada" items={this.getActivityDetailOptions(props.values.action)} />
+                <Field name="actionDescription" component={OrderActionsSelect} label="Accion Realizada" placeholder="Seleccione accion realizada" typeId={props.values.action} />
                 <ErrorMessage name="actionDescription" component={errorComponent} />
                 <View>
                   <DateTimePicker
@@ -313,7 +254,7 @@ class Main extends Component {
                       </Item>
                     </Col>
                     <Button style={{ alignSelf: 'flex-end' }} transparent onPress={this._showDateTimePicker}>
-                      <Icon style={{ fontSize: 30  }} name='time' />
+                      <Icon style={{ fontSize: 30 }} name='time' />
                     </Button>
                   </Grid>
                 </View>
